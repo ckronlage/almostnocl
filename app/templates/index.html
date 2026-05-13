@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MELD GUI – Neuroimaging Toolkit</title>
+
+  <!-- NiiVue – interactive NIfTI viewer (loaded from CDN) -->
+  <script src="/static/vendor/niivue.umd.min.js"></script>
+
+  <style>
+    /* ── Reset & base ────────────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2e3248;
+      --accent: #5b8cff;
+      --accent2: #a78bfa;
+      --text: #e2e8f0;
+      --muted: #7e8ba8;
+      --success: #34d399;
+      --danger: #f87171;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+
+    header p {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      flex: 1;
+      gap: 0;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      overflow-y: auto;
+    }
+
+    /* ── Drop zone ───────────────────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .dropzone:hover,
+    .dropzone.drag-over {
+      border-color: var(--accent);
+      background: rgba(91, 140, 255, .06);
+    }
+
+    .dropzone .icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .dropzone .hint {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    /* ── File info card ──────────────────────────────────────────── */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .card h3 {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .82rem;
+      margin-bottom: 6px;
+    }
+
+    .info-row span:last-child {
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* ── Threshold controls ──────────────────────────────────────── */
+    .controls h3 {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 14px;
+    }
+
+    label {
+      font-size: .82rem;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+    }
+
+    .range-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .range-row input[type=range] {
+      flex: 1;
+      accent-color: var(--accent);
+    }
+
+    .range-row .val {
+      min-width: 60px;
+      text-align: right;
+      font-size: .82rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent2);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:not(:disabled):hover {
+      opacity: .85;
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    .btn-secondary:not(:disabled):hover {
+      opacity: .75;
+    }
+
+    /* ── Status / toast ──────────────────────────────────────────── */
+    #status {
+      font-size: .8rem;
+      min-height: 20px;
+      text-align: center;
+      transition: color .2s;
+    }
+
+    #status.ok {
+      color: var(--success);
+    }
+
+    #status.error {
+      color: var(--danger);
+    }
+
+    #status.info {
+      color: var(--muted);
+    }
+
+    /* ── Main panel ──────────────────────────────────────────────── */
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      font-size: .84rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content {
+      flex: 1;
+      display: none;
+      overflow: hidden;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NiiVue panels ────────────────────────────────────────────── */
+    .niivue-panel {
+      position: relative;
+      flex: 1;
+    }
+
+    .niivue-canvas {
+      width: 100%;
+      height: 100%;
+      min-height: 400px;
+    }
+
+    .nv-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .nv-placeholder .big {
+      font-size: 3rem;
+    }
+
+    /* ── Spinner ──────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div>
+      <h1>image processing GUI</h1>
+      <p>Prototype</p>
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+
+      <!-- Drop zone -->
+      <div class="dropzone" id="dropzone" title="Click or drag a NIfTI file here">
+        <div class="icon">🧠</div>
+        <strong>Drop NIfTI file here</strong>
+        <div class="hint">.nii or .nii.gz · click to browse</div>
+        <input type="file" id="fileInput" accept=".nii,.nii.gz" />
+      </div>
+
+      <!-- File info -->
+      <div class="card" id="fileInfoCard" style="display:none">
+        <h3>File Info</h3>
+        <div class="info-row"><span>Filename</span><span id="infoName">—</span></div>
+        <div class="info-row"><span>Shape</span><span id="infoShape">—</span></div>
+        <div class="info-row"><span>Voxel size</span><span id="infoZooms">—</span></div>
+        <div class="info-row"><span>Min</span><span id="infoMin">—</span></div>
+        <div class="info-row"><span>Max</span><span id="infoMax">—</span></div>
+      </div>
+
+      <!-- Threshold controls -->
+      <div class="card controls" id="controlsCard" style="display:none">
+        <h3>Intensity Threshold</h3>
+        <label>Lower bound</label>
+        <div class="range-row">
+          <input type="range" id="lowerSlider" min="0" max="1" step="0.01" value="0" />
+          <span class="val" id="lowerVal">0</span>
+        </div>
+        <label>Upper bound</label>
+        <div class="range-row">
+          <input type="range" id="upperSlider" min="0" max="1" step="0.01" value="1" />
+          <span class="val" id="upperVal">1</span>
+        </div>
+        <button class="btn btn-primary" id="processBtn" disabled>Apply Threshold</button>
+        <button class="btn btn-secondary" id="downloadBtn" style="display:none">⬇ Download Result</button>
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="info">Upload a file to get started.</div>
+    </aside>
+
+    <!-- ── Main panel ── -->
+    <main class="main-panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="preview">Uploaded Viewer</button>
+        <button class="tab-btn" data-tab="viewer">Processed Viewer</button>
+      </div>
+
+      <!-- Uploaded NiiVue interactive viewer tab -->
+      <div class="tab-content active" id="tab-preview">
+        <div class="niivue-panel">
+          <canvas id="glUpload" class="niivue-canvas"></canvas>
+          <div id="nvUploadPlaceholder" class="nv-placeholder">
+            <div class="big">🧠</div>
+            <span>Upload a NIfTI file to launch the interactive viewer.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processed NiiVue interactive viewer tab -->
+      <div class="tab-content" id="tab-viewer">
+        <div class="niivue-panel">
+          <canvas id="glResult" class="niivue-canvas"></canvas>
+          <div id="nvResultPlaceholder" class="nv-placeholder">
+            <div class="big">🖼️</div>
+            <span>Apply thresholding to view the processed result.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ── State ────────────────────────────────────────────────────────
+    let fileId = null;
+    let outputFilename = null;
+    let dataMin = 0, dataMax = 1;
+    let uploadFilename = null;
+    let nvUpload = null;
+    let nvResult = null;
+
+    async function readJsonResponse(res) {
+      const body = await res.text();
+      const contentType = res.headers.get('content-type') || '';
+      const looksJson = contentType.includes('application/json') || contentType.includes('application/problem+json');
+
+      const parseBody = () => {
+        if (!body) return null;
+        try {
+          return JSON.parse(body);
+        } catch {
+          return null;
+        }
+      };
+
+      if (!res.ok) {
+        const parsed = parseBody();
+        const message = (parsed && (parsed.detail || parsed.message)) || body || 'Request failed';
+        throw new Error(message);
+      }
+
+      if (!body) return null;
+
+      const parsed = parseBody();
+      if (parsed !== null) return parsed;
+
+      throw new Error(looksJson ? 'Invalid JSON response from server' : body);
+    }
+
+    // ── Tabs ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + target).classList.add('active');
+      });
+    });
+
+    // ── Drop zone ────────────────────────────────────────────────────
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) uploadFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+    });
+
+    // ── Upload ───────────────────────────────────────────────────────
+    async function uploadFile(file) {
+      setStatus('info', `<span class="spinner"></span>Uploading ${file.name}…`);
+      document.getElementById('processBtn').disabled = true;
+      document.getElementById('downloadBtn').style.display = 'none';
+      fileId = null; outputFilename = null;
+
+      const form = new FormData();
+      form.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: form });
+        const data = await readJsonResponse(res);
+
+        fileId = data.file_id;
+        uploadFilename = data.upload_file;
+        dataMin = data.info.min;
+        dataMax = data.info.max;
+
+        // Populate info card
+        document.getElementById('infoName').textContent = truncate(data.filename, 24);
+        document.getElementById('infoShape').textContent = data.info.shape.join(' × ');
+        document.getElementById('infoZooms').textContent = data.info.zooms.map(v => v.toFixed(2)).join(' × ') + ' mm';
+        document.getElementById('infoMin').textContent = fmt(data.info.min);
+        document.getElementById('infoMax').textContent = fmt(data.info.max);
+        document.getElementById('fileInfoCard').style.display = 'block';
+
+        // Initialise sliders
+        initSliders(data.info.p2, data.info.p98, data.info.min, data.info.max);
+        document.getElementById('controlsCard').style.display = 'block';
+        document.getElementById('processBtn').disabled = false;
+
+        // Load original upload into interactive viewer
+        await loadUploadedNiiVue(`/uploads/${uploadFilename}`);
+        setStatus('ok', `✓ Loaded ${data.filename}`);
+      } catch (err) {
+        setStatus('error', `✗ ${err.message}`);
+      }
+    }
+
+    // ── Sliders ──────────────────────────────────────────────────────
+    function initSliders(p2, p98, globalMin, globalMax) {
+      const lower = document.getElementById('lowerSlider');
+      const upper = document.getElementById('upperSlider');
+      const range = globalMax - globalMin || 1;
+
+      lower.min = globalMin; lower.max = globalMax; lower.step = range / 1000;
+      upper.min = globalMin; upper.max = globalMax; upper.step = range / 1000;
+      lower.value = p2;
+      upper.value = p98;
+      document.getElementById('lowerVal').textContent = fmt(p2);
+      document.getElementById('upperVal').textContent = fmt(p98);
+
+      lower.oninput = () => {
+        if (+lower.value > +upper.value) lower.value = upper.value;
+        document.getElementById('lowerVal').textContent = fmt(+lower.value);
+      };
+      upper.oninput = () => {
+        if (+upper.value < +lower.value) upper.value = lower.value;
+        document.getElementById('upperVal').textContent = fmt(+upper.value);
+      };
+    }
+
+    // ── Process ──────────────────────────────────────────────────────
+    document.getElementById('processBtn').addEventListener('click', async () => {
+      if (!fileId) return;
+      const lower = +document.getElementById('lowerSlider').value;
+      const upper = +document.getElementById('upperSlider').value;
+
+      setStatus('info', `<span class="spinner"></span>Processing…`);
+      document.getElementById('processBtn').disabled = true;
+
+      try {
+        const res = await fetch(`/api/process/${fileId}?lower=${lower}&upper=${upper}`, { method: 'POST' });
+        const data = await readJsonResponse(res);
+
+        outputFilename = data.output_file;
+        document.getElementById('downloadBtn').style.display = 'block';
+        setStatus('ok', '✓ Processing complete');
+
+        // Load processed output into interactive viewer
+        const processedUrl = `/outputs/${outputFilename}`;
+        await loadProcessedNiiVue(processedUrl);
+      } catch (err) {
+        setStatus('error', `✗ ${err.message}`);
+      } finally {
+        document.getElementById('processBtn').disabled = false;
+      }
+    });
+
+    // ── Download ─────────────────────────────────────────────────────
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      if (outputFilename) window.location.href = `/api/download/${outputFilename}`;
+    });
+
+    // ── NiiVue viewers ───────────────────────────────────────────────
+    async function loadUploadedNiiVue(url) {
+      document.getElementById('nvUploadPlaceholder').style.display = 'none';
+
+      if (!nvUpload) {
+        nvUpload = new niivue.Niivue({
+          show3Dcrosshair: true,
+          isRadiologicalConvention: true,
+          backColor: [0.1, 0.1, 0.15, 1],
+        });
+        await nvUpload.attachToCanvas(document.getElementById('glUpload'));
+      } else {
+        nvUpload.removeAllVolumes();
+      }
+
+      await nvUpload.loadVolumes([{ url }]);
+    }
+
+    async function loadProcessedNiiVue(url) {
+      document.getElementById('nvResultPlaceholder').style.display = 'none';
+
+      // Switch to processed viewer tab automatically
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-tab="viewer"]').classList.add('active');
+      document.getElementById('tab-viewer').classList.add('active');
+
+      // Recreate the processed viewer each run to avoid stale internal state.
+      const oldCanvas = document.getElementById('glResult');
+      const freshCanvas = oldCanvas.cloneNode(false);
+      oldCanvas.replaceWith(freshCanvas);
+
+      nvResult = new niivue.Niivue({
+        show3Dcrosshair: true,
+        isRadiologicalConvention: true,
+        backColor: [0.1, 0.1, 0.15, 1],
+      });
+      await nvResult.attachToCanvas(freshCanvas);
+
+      await nvResult.loadVolumes([{ url }]);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────
+    function setStatus(cls, html) {
+      const el = document.getElementById('status');
+      el.className = cls;
+      el.innerHTML = html;
+    }
+    function fmt(n) {
+      if (Math.abs(n) >= 1000 || (Math.abs(n) < 0.01 && n !== 0)) return n.toExponential(2);
+      return parseFloat(n.toFixed(2)).toString();
+    }
+    function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,10 @@
+services:
+  meld-gui:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist uploads and outputs across restarts
+      - ./uploads:/workspace/uploads
+      - ./outputs:/workspace/outputs
+    restart: unless-stopped
