@@ -1,4 +1,5 @@
 ## just open the viewer
+for running research medical imaging tools on individual scans 
 
 ### Motivation
 A lot of interesting open-source research software in neuroimaging is being developed and published. Many projects have concrete clinical applications, e.g., volumetry to measure neurodegeneration, detection or segmentation of pathologies like tumours. For guiding development toward real clinical needs, feedback from clinicians is valuable, especially when they can test new tools on their own data. However, setting up research software can be time-consuming and complicated, while transferring clinical data is often not permitted.

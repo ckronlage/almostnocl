@@ -1,5 +1,5 @@
 services:
-  meld-gui:
+  jotv:
     build: .
     ports:
       - "8000:8000"

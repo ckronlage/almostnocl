@@ -1,5 +1,5 @@
 """
-FastAPI backend for MELD GUI – neuroimaging processing web application.
+FastAPI backend
 """
 import uuid
 import shutil
@@ -26,7 +26,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # ---------------------------------------------------------------------------
 # App setup
 # ---------------------------------------------------------------------------
-app = FastAPI(title="MELD GUI", version="0.1.0")
+app = FastAPI(title="JOTV", version="0.1.1")
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
