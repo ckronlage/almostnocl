@@ -37,6 +37,10 @@ And go to (http://localhost:8000)
 
 We know that there is for example [NiiVue-Fullstack](https://github.com/niivue/fullstack-niivue-demo), which can be hosted in a cloud on the web, and is therefore much more complex (user management, authentication). This is meant to be simple, easy, and run locally.
 
+
+### Disclaimer
+This interface and the used software tools are meant for research purposes only, not for clinical applications. They are not regulated medical devices, and have not been reviewed or approved by any regulatory agency. Any application is at the user's own risk. There is no warranty of any kind.
+
 ### About us
 - We are from the [IMAGINE lab](https://imaginelab.github.io/) at King's College London, we usually work on developing tools for improving clinical diagnosis in epilepsy. The idea for this project is inspired by interactions with clinical colleagues in radiology, neurology and paediatrics.
 - We are just dabbling in web app design and would like to learn a little bit through this project - if you're knowledgeable, please join and show us how it's done :)
