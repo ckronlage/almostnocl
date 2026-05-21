@@ -1,14 +1,15 @@
 ## just open the viewer
 
 ### Motivation
-A lot of interesting open-source research software in neuroimaging is being developed and published. Many projects have concrete clinical applications, e.g., volumetry to measure neurodegeneration, detection or segmentation of pathologies like tumours. For guiding development toward real clinical needs, feedback from clinicians is valuable, especially when they are able to test new tools using their own data. However, research software often requires time-consuming and complex setup, while transferring clinical data is often not permitted.
+A lot of interesting open-source research software in neuroimaging is being developed and published. Many projects have concrete clinical applications, e.g., volumetry to measure neurodegeneration, detection or segmentation of pathologies like tumours. For guiding development toward real clinical needs, feedback from clinicians is valuable, especially when they can test new tools on their own data. However, setting up research software can be time-consuming and complicated, while transferring clinical data is often not permitted.
 
 ### Idea
 Make the setup and demo of different research neuroimaging tools as easy as possible, to enable users to run these locally on own data.
-More recent developements that we can make use of include:
+More recent developments that we can make use of include:
 - Deep learning tools that often run in seconds (GPU) or minutes (CPU) instead of hours
 - Software containerization (docker etc.)
 - [NiiVue](https://niivue.com/), a polished in-browser viewer for 3D medical images
+  
 Optimally, the user experience should only require installing Docker and then look like this:
 <img width="600" alt="pitch_figure" src="https://github.com/user-attachments/assets/c6ce03f9-9430-4ba1-b0bd-a4068a85d25e" />
 
