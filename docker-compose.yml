@@ -1,5 +1,5 @@
 services:
-  jotv:
+  ancl:
     build: .
     ports:
       - "8000:8000"

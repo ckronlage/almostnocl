@@ -1,4 +1,4 @@
-## just open the viewer
+## almost no command line
 for running research medical imaging tools on individual scans 
 
 ### Motivation
