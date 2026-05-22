@@ -19,8 +19,8 @@ We have (half vibe-)coded a minimal template and a version with synthseg to disp
 
 You need docker, raise the system memory limit to >16GB and then do:
 ```
-git clone -b synthseg https://github.com/ckronlage/nii_proc_gui
-cd nii_proc_gui
+git clone -b synthseg https://github.com/ckronlage/almostnocl
+cd almostnocl
 docker compose up
 ```
 And go to (http://localhost:8000)
