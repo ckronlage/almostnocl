@@ -37,7 +37,15 @@ And go to (http://localhost:8000)
     - nnUNet for different segmentation tasks
     - Perhaps something you have developed?
 
-We know that there is for example [NiiVue-Fullstack](https://github.com/niivue/fullstack-niivue-demo), which can be hosted in a cloud on the web, and is therefore much more complex (user management, authentication). This is meant to be simple, easy, and run locally.
+### Possible questions
+
+*Doesn't this already exist?*
+
+We are aware of [NiiVue-Fullstack](https://github.com/niivue/fullstack-niivue-demo), for example, which can be hosted in a cloud on the web, and is therefore much more complex (user management, authentication). This is meant to be simple, easy, and run locally. If you know of anything comparable, let us know!
+
+*Wouldn't full PACS/DICOM integration be better?*
+
+Possibly, though that might increase complexity. Also, this is not meant to be a regulated medical device. If you think it's feasible and know how we could test it with a PACS, get in touch
 
 
 ### Disclaimer
