@@ -19,7 +19,9 @@ Optimally, the user experience should only require installing Docker and then lo
 ### Current status
 We have (half vibe-)coded a minimal template and a version with synthseg to display a hippocampal segmentation. This is overall less than 1000 lines of code (python, HTML, Dockerfile).
 
-You need docker, raise the system memory limit to >16GB and then do:
+You need docker, raise the system memory limit to >16GB.
+Docker needs to be running (otherwise you might get an error like `unable to get image 'almostnocl-ancl': Cannot connect to the Docker daemon`)
+Then do:
 ```
 git clone -b synthseg https://github.com/ckronlage/almostnocl
 cd almostnocl
@@ -35,8 +37,10 @@ And go to (http://localhost:8000)
 - Improvements to the template (e.g., DICOM input support, UI)
 - Test on different OSs (Linux, Mac, Windows) and test GPU support for some deep learning tools
 - Making separate versions for different tools with optimized viewer UI for each one, e.g.:
-    - Hippocampal volumetry with synthseg
+    - Hippocampal or other volumetry tasks using synthseg
     - nnUNet for different segmentation tasks
+    - super-resolution?
+    - lesion inpainting (e.g. fastsurfer-LIT)?
     - Perhaps something you have developed?
 
 ### Possible questions
