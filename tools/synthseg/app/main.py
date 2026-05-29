@@ -12,14 +12,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 
-from app.processing import load_nifti, apply_threshold, get_data_range
+from app.processing import load_nifti, run_synthseg, get_data_range
 
 # ---------------------------------------------------------------------------
 # Directory layout
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).parent.parent
-UPLOAD_DIR = BASE_DIR / "uploads"
-OUTPUT_DIR = BASE_DIR / "outputs"
+APP_DIR = Path(__file__).resolve().parent
+WORKSPACE_DIR = Path("/workspace")
+SHARED_DIR = WORKSPACE_DIR / "shared"
+UPLOAD_DIR = WORKSPACE_DIR / "uploads"
+OUTPUT_DIR = WORKSPACE_DIR / "outputs"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -28,11 +30,11 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # ---------------------------------------------------------------------------
 app = FastAPI(title="ancl", version="0.1.1")
 
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
+app.mount("/shared", StaticFiles(directory=str(SHARED_DIR)), name="shared")
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
 
-templates = Jinja2Templates(directory=str(BASE_DIR / "app" / "templates"))
+templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
 
 
 @app.exception_handler(HTTPException)
@@ -91,24 +93,20 @@ async def upload_nifti(file: UploadFile = File(...)):
 
 
 @app.post("/api/process/{file_id}")
-async def process_nifti(file_id: str, lower: float = 0.0, upper: float = 1e6):
-    """Apply intensity thresholding and return output filename for viewing/download."""
+async def process_nifti(file_id: str):
+    """Run SynthSeg segmentation and return output filename for viewing/download."""
     # Locate uploaded file
     nii_path = _find_upload(file_id)
     if nii_path is None:
         raise HTTPException(status_code=404, detail="File not found. Please re-upload.")
 
-    try:
-        img = load_nifti(str(nii_path))
-        result = apply_threshold(img, lower, upper)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Processing error: {exc}")
-
-    # Save output
-    out_filename = f"{file_id}_thresholded.nii.gz"
+    out_filename = f"{file_id}_synthseg.nii.gz"
     out_path = OUTPUT_DIR / out_filename
-    import nibabel as nib
-    nib.save(result, str(out_path))
+
+    try:
+        run_synthseg(nii_path, out_path)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"SynthSeg processing error: {exc}")
 
     return JSONResponse({
         "file_id": file_id,

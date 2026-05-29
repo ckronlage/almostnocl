@@ -20,17 +20,26 @@ Optimally, the user experience should only require installing Docker and then lo
 We have (half vibe-)coded a minimal template and a version with synthseg to display a hippocampal segmentation. This is overall less than 1000 lines of code (python, HTML, Dockerfile).
 
 You need docker, raise the system memory limit to >16GB.
-Docker needs to be running (otherwise you might get an error like `unable to get image 'almostnocl-ancl': Cannot connect to the Docker daemon`)
-Then do:
+Docker needs to be running (otherwise you might get an error like `unable to get image 'almostnocl-ancl': Cannot connect to the Docker daemon`).
+
+Then choose a tool and run its compose file.
+
+For the SynthSeg tool:
 ```
-git clone -b synthseg https://github.com/ckronlage/almostnocl
+git clone https://github.com/ckronlage/almostnocl
 cd almostnocl
-docker compose up
+docker compose -f tools/synthseg/docker-compose.yml up --build
+```
+
+For the template tool:
+```
+git clone https://github.com/ckronlage/almostnocl
+cd almostnocl
+docker compose -f tools/template/docker-compose.yml up --build
 ```
 And go to (http://localhost:8000)
 
 <img width="600" src="https://github.com/user-attachments/assets/10e2e430-1cd8-4563-a53d-179a32c2f83b" />
-
 
 ### Goals
 - Keep the code as short and minimal as possible, making it easier maintain and adapt for new tools

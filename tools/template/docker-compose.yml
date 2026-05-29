@@ -5,6 +5,7 @@ services:
       - "8000:8000"
     volumes:
       # Persist uploads and outputs across restarts
-      - ./uploads:/workspace/uploads
-      - ./outputs:/workspace/outputs
+      - ../../uploads:/workspace/uploads
+      - ../../outputs:/workspace/outputs
+      - ../../shared:/workspace/shared:ro
     restart: unless-stopped

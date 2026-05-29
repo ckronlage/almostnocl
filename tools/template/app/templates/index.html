@@ -6,11 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>almost no command line - ancl</title>
 
-  <!-- NiiVue – interactive NIfTI viewer (js copied locally) -->
-  <script src="/static/vendor/niivue.umd.min.js"></script>
+  <!-- NiiVue is loaded as an ES module via dynamic import in the app script. -->
 
   <style>
     /* ── Reset & base ────────────────────────────────────────────── */
+    html,
+    body {
+      height: 100%;
+    }
+
     *,
     *::before,
     *::after {
@@ -36,9 +40,10 @@
       background: var(--bg);
       color: var(--text);
       font-family: "Inter", system-ui, sans-serif;
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     /* ── Header ─────────────────────────────────────────────────── */
@@ -68,6 +73,7 @@
       grid-template-columns: 340px 1fr;
       flex: 1;
       gap: 0;
+      min-height: 0;
     }
 
     @media (max-width: 900px) {
@@ -85,6 +91,7 @@
       flex-direction: column;
       gap: 24px;
       overflow-y: auto;
+      min-height: 0;
     }
 
     /* ── Drop zone ───────────────────────────────────────────────── */
@@ -244,6 +251,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
     }
 
     .tab-bar {
@@ -273,6 +281,7 @@
       flex: 1;
       display: none;
       overflow: hidden;
+      min-height: 0;
     }
 
     .tab-content.active {
@@ -284,12 +293,14 @@
     .niivue-panel {
       position: relative;
       flex: 1;
+      min-height: 0;
     }
 
     .niivue-canvas {
-      width: 100%;
-      height: 100%;
-      min-height: 400px;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0;
+      display: block;
     }
 
     .nv-placeholder {
@@ -422,6 +433,26 @@
     let uploadFilename = null;
     let nvUpload = null;
     let nvResult = null;
+    let niivueModulePromise = null;
+    const NIIVUE_MODULE_URL = '/shared/niivue_assets/niivue.webgl2.single.min.js';
+
+    async function ensureNiivue() {
+      if (window.niivue && window.niivue.Niivue) {
+        return window.niivue;
+      }
+      if (!niivueModulePromise) {
+        niivueModulePromise = import(NIIVUE_MODULE_URL)
+          .then((mod) => {
+            const NiiVueCtor = mod.Niivue || mod.default;
+            if (!NiiVueCtor) {
+              throw new Error('Could not load NiiVue constructor from module export');
+            }
+            window.niivue = { ...mod, Niivue: NiiVueCtor };
+            return window.niivue;
+          });
+      }
+      return niivueModulePromise;
+    }
 
     async function readJsonResponse(res) {
       const body = await res.text();
@@ -577,6 +608,7 @@
     // ── NiiVue viewers ───────────────────────────────────────────────
     async function loadUploadedNiiVue(url) {
       document.getElementById('nvUploadPlaceholder').style.display = 'none';
+      const niivue = await ensureNiivue();
 
       if (!nvUpload) {
         nvUpload = new niivue.Niivue({
@@ -594,6 +626,7 @@
 
     async function loadProcessedNiiVue(url) {
       document.getElementById('nvResultPlaceholder').style.display = 'none';
+      const niivue = await ensureNiivue();
 
       // Switch to processed viewer tab automatically
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
