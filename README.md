@@ -1,6 +1,8 @@
 ## almost no command line
 for running research medical imaging tools on individual scans 
 
+<img width="256" alt="icon" src="https://github.com/user-attachments/assets/22cfc7a8-e95a-4176-ba7a-9fbae89db519" />
+
 Hackathon project June 2026
 
 ### Motivation
