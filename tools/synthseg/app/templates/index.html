@@ -206,6 +206,27 @@
       opacity: .75;
     }
 
+    .mode-label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+
+    .mode-select {
+      width: 100%;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: .85rem;
+    }
+
     /* ── Status / toast ──────────────────────────────────────────── */
     #status {
       font-size: .8rem;
@@ -267,6 +288,43 @@
     .tab-content.active {
       display: flex;
       flex-direction: column;
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .viewer-toolbar .mode-label {
+      margin: 0;
+      font-size: .76rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .viewer-toolbar .mode-select {
+      max-width: 180px;
+    }
+
+    .clip-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 8px;
+      font-size: .8rem;
+      color: var(--muted);
+      user-select: none;
+    }
+
+    .clip-toggle input {
+      accent-color: var(--accent);
     }
 
     /* ── NiiVue panels ────────────────────────────────────────────── */
@@ -374,6 +432,26 @@
 
       <!-- Uploaded NiiVue interactive viewer tab -->
       <div class="tab-content active" id="tab-preview">
+        <div class="viewer-toolbar">
+          <label class="mode-label" for="layoutSelectPreview">Layout</label>
+          <select id="layoutSelectPreview" class="mode-select">
+            <option value="axial">Axial</option>
+            <option value="coronal">Coronal</option>
+            <option value="sagittal">Sagittal</option>
+            <option value="multiplanar" selected>Multiplanar</option>
+            <option value="render">Render (3D)</option>
+          </select>
+          <label class="mode-label" for="dragModeSelectPreview">Drag Mode</label>
+          <select id="dragModeSelectPreview" class="mode-select">
+            <option value="contrast" selected>Contrast</option>
+            <option value="zoom">Zoom</option>
+            <option value="pan">Pan</option>
+          </select>
+          <label class="clip-toggle" for="clipPlaneTogglePreview">
+            <input id="clipPlaneTogglePreview" type="checkbox" />
+            Clip Plane
+          </label>
+        </div>
         <div class="niivue-panel">
           <canvas id="glUpload" class="niivue-canvas"></canvas>
           <div id="nvUploadPlaceholder" class="nv-placeholder">
@@ -385,6 +463,26 @@
 
       <!-- Processed NiiVue interactive viewer tab -->
       <div class="tab-content" id="tab-viewer">
+        <div class="viewer-toolbar">
+          <label class="mode-label" for="layoutSelectResult">Layout</label>
+          <select id="layoutSelectResult" class="mode-select">
+            <option value="axial">Axial</option>
+            <option value="coronal">Coronal</option>
+            <option value="sagittal">Sagittal</option>
+            <option value="multiplanar" selected>Multiplanar</option>
+            <option value="render">Render (3D)</option>
+          </select>
+          <label class="mode-label" for="dragModeSelectResult">Drag Mode</label>
+          <select id="dragModeSelectResult" class="mode-select">
+            <option value="contrast" selected>Contrast</option>
+            <option value="zoom">Zoom</option>
+            <option value="pan">Pan</option>
+          </select>
+          <label class="clip-toggle" for="clipPlaneToggleResult">
+            <input id="clipPlaneToggleResult" type="checkbox" />
+            Clip Plane
+          </label>
+        </div>
         <div class="niivue-panel">
           <canvas id="glResult" class="niivue-canvas"></canvas>
           <div id="nvResultPlaceholder" class="nv-placeholder">
@@ -404,6 +502,9 @@
     let nvUpload = null;
     let nvResult = null;
     let niivueModulePromise = null;
+    let selectedLayoutValue = 'multiplanar';
+    let selectedDragModeValue = 'contrast';
+    let clipPlaneEnabled = false;
     const NIIVUE_MODULE_URL = '/shared/niivue_assets/niivue.webgl2.single.min.js';
 
     async function ensureNiivue() {
@@ -422,6 +523,63 @@
           });
       }
       return niivueModulePromise;
+    }
+
+    function applyNVConfig(nv) {
+      nv.opts.show3Dcrosshair = true;
+      nv.opts.isRadiologicalConvention = true;
+      nv.opts.dragAndDropEnabled = false;
+    }
+
+    function getSelectedSliceType() {
+      if (selectedLayoutValue === 'axial') return 0;
+      if (selectedLayoutValue === 'coronal') return 1;
+      if (selectedLayoutValue === 'sagittal') return 2;
+      if (selectedLayoutValue === 'render') return 4;
+      return 3;
+    }
+
+    function setLayoutSelection(value) {
+      selectedLayoutValue = value;
+      document.getElementById('layoutSelectPreview').value = value;
+      document.getElementById('layoutSelectResult').value = value;
+    }
+
+    function applySelectedLayout() {
+      const sliceType = getSelectedSliceType();
+      if (nvUpload) nvUpload.setSliceType(sliceType);
+      if (nvResult) nvResult.setSliceType(sliceType);
+    }
+
+    function getSelectedNVDragMode() {
+      const selected = selectedDragModeValue;
+      if (selected === 'zoom') return 'slicer3D';
+      if (selected === 'pan') return 'pan';
+      return 'contrast';
+    }
+
+    function setDragModeSelection(value) {
+      selectedDragModeValue = value;
+      document.getElementById('dragModeSelectPreview').value = value;
+      document.getElementById('dragModeSelectResult').value = value;
+    }
+
+    function applySelectedDragMode() {
+      const dragMode = getSelectedNVDragMode();
+      if (nvUpload) nvUpload.setDragMode(dragMode);
+      if (nvResult) nvResult.setDragMode(dragMode);
+    }
+
+    function setClipPlaneSelection(enabled) {
+      clipPlaneEnabled = enabled;
+      document.getElementById('clipPlaneTogglePreview').checked = enabled;
+      document.getElementById('clipPlaneToggleResult').checked = enabled;
+    }
+
+    function applySelectedClipPlane() {
+      const clipPlane = clipPlaneEnabled ? [0, 0, 0] : [2, 0, 0];
+      if (nvUpload) nvUpload.setClipPlane(clipPlane);
+      if (nvResult) nvResult.setClipPlane(clipPlane);
     }
 
     async function readJsonResponse(res) {
@@ -546,6 +704,36 @@
       if (outputFilename) window.location.href = `/api/download/${outputFilename}`;
     });
 
+    document.getElementById('dragModeSelectPreview').addEventListener('change', (evt) => {
+      setDragModeSelection(evt.target.value);
+      applySelectedDragMode();
+    });
+
+    document.getElementById('layoutSelectPreview').addEventListener('change', (evt) => {
+      setLayoutSelection(evt.target.value);
+      applySelectedLayout();
+    });
+
+    document.getElementById('dragModeSelectResult').addEventListener('change', (evt) => {
+      setDragModeSelection(evt.target.value);
+      applySelectedDragMode();
+    });
+
+    document.getElementById('layoutSelectResult').addEventListener('change', (evt) => {
+      setLayoutSelection(evt.target.value);
+      applySelectedLayout();
+    });
+
+    document.getElementById('clipPlaneTogglePreview').addEventListener('change', (evt) => {
+      setClipPlaneSelection(evt.target.checked);
+      applySelectedClipPlane();
+    });
+
+    document.getElementById('clipPlaneToggleResult').addEventListener('change', (evt) => {
+      setClipPlaneSelection(evt.target.checked);
+      applySelectedClipPlane();
+    });
+
     // ── NiiVue viewers ───────────────────────────────────────────────
     async function loadUploadedNiiVue(url) {
       document.getElementById('nvUploadPlaceholder').style.display = 'none';
@@ -553,8 +741,6 @@
 
       if (!nvUpload) {
         nvUpload = new niivue.Niivue({
-          show3Dcrosshair: true,
-          isRadiologicalConvention: true,
           backColor: [0.1, 0.1, 0.15, 1],
         });
         await nvUpload.attachToCanvas(document.getElementById('glUpload'));
@@ -563,6 +749,10 @@
       }
 
       await nvUpload.loadVolumes([{ url }]);
+      applyNVConfig(nvUpload);
+      applySelectedLayout();
+      applySelectedDragMode();
+      applySelectedClipPlane();
     }
 
     async function loadProcessedNiiVue(url) {
@@ -585,12 +775,9 @@
       oldCanvas.replaceWith(freshCanvas);
 
       nvResult = new niivue.Niivue({
-        show3Dcrosshair: true,
-        isRadiologicalConvention: true,
         backColor: [0.1, 0.1, 0.15, 1],
       });
       await nvResult.attachToCanvas(freshCanvas);
-
       await nvResult.loadVolumes([
         {
           url: `/uploads/${uploadFilename}`,
@@ -603,6 +790,14 @@
           cal_max: 1,
         }
       ]);
+
+      applyNVConfig(nvResult);
+      applySelectedLayout();
+      applySelectedDragMode();
+      applySelectedClipPlane();
+
+      nvResult.broadcastTo([nvUpload], { "2d": true, "3d": true });
+
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
