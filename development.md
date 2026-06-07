@@ -7,4 +7,4 @@ The app uses a single local NiiVue bundle file:
 
 This avoids runtime internet dependency.
 
-To refresh that bundle from GitHub (`niivue/mono`) without installing npm/bun on host, run `bash ./scripts/update_niivue_bundle.sh `
+To refresh that bundle from npm (`@niivue/niivue@0.69.0`) without installing npm/bun on host, run `bash ./scripts/update_niivue_bundle.sh`
