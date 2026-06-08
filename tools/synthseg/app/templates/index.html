@@ -745,7 +745,10 @@
         });
         await nvUpload.attachToCanvas(document.getElementById('glUpload'));
       } else {
-        nvUpload.removeAllVolumes();
+        // remove all volumes
+        for (const vol of nvUpload.volumes) {
+          await nvUpload.removeVolume(vol);
+        }
       }
 
       await nvUpload.loadVolumes([{ url }]);

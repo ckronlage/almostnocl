@@ -18,7 +18,7 @@ def apply_threshold(img: nib.Nifti1Image, lower: float, upper: float) -> nib.Nif
 
 def get_data_range(img: nib.Nifti1Image) -> dict:
     """Return min/max intensity and basic shape info."""
-    data = np.array(img.dataobj, dtype=np.float32)
+    data = img.get_fdata()
     non_zero = data[data != 0]
     return {
         "min": float(data.min()),

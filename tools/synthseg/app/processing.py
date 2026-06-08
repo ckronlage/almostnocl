@@ -3,10 +3,12 @@ NIfTI processing utilities: loading, SynthSeg segmentation, and metadata extract
 """
 from pathlib import Path
 import subprocess
+import logging
 
 import numpy as np
 import nibabel as nib
 
+logger = logging.getLogger(__name__)
 
 def load_nifti(path: str) -> nib.Nifti1Image:
     return nib.load(path)
@@ -30,7 +32,9 @@ def run_synthseg(input_path: str | Path, output_path: str | Path) -> None:
         "4",
     ]
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        logger.info(f"Running SynthSeg: {' '.join(cmd)}")
+        completed_process = subprocess.run(cmd, check=True, stderr=subprocess.STDOUT, text=True)
+        logger.info(f"SynthSeg output: {completed_process.stdout}")
     except subprocess.CalledProcessError as exc:
         details = (exc.stderr or exc.stdout or str(exc)).strip()
         raise RuntimeError(details) from exc

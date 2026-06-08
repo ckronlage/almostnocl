@@ -58,7 +58,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def index(request: Request):
-    response = templates.TemplateResponse("index.html", {"request": request})
+    response = templates.TemplateResponse(request=request, name="index.html", context={})
     response.headers["Cache-Control"] = "no-store"
     return response
 

@@ -10,9 +10,9 @@ services:
       - ../../outputs:/workspace/outputs
       - ../../shared:/workspace/shared:ro
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-              count: all
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - capabilities: [gpu]
+    #          count: all
