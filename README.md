@@ -41,6 +41,8 @@ docker compose -f tools/template/docker-compose.yml up --build
 ```
 And go to (http://localhost:8000)
 
+See a [demo video here (youtube)](https://www.youtube.com/watch?v=NPPDROiQEeU)
+
 <img width="600" src="https://github.com/user-attachments/assets/10e2e430-1cd8-4563-a53d-179a32c2f83b" />
 
 ### Goals
